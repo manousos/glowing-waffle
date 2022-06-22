@@ -1,18 +1,14 @@
-# requireReleaseDepsInPlugins
+# Glowing waffle
 
-Rule appended to the [Maven Enforcer plugin](https://maven.apache.org/enforcer/maven-enforcer-plugin/) in order to ban SNAPSHOT dependencies of plugins.
+Collection of custom rules to be appended to the [Maven Enforcer plugin](https://maven.apache.org/enforcer/maven-enforcer-plugin/).
 
 ## Description
 
-If any plugin in a pom declares a SNAPSHOT dependency, the rule logs it and makes the build to fail.
-
-Plugins in children modules are scanned too.
-
-The rule (actually the `enforce` Maven goal) is executed during the `validate` Maven phase, the same of the Maven Enforcer plugin.
+Rules (actually the `enforce` Maven goal) are executed during the `validate` Maven phase, the same of the Maven Enforcer plugin.
 
 ## Getting started
 
-Append this project dependency to the Maven Enforcer plugin, then add the rule `requireReleaseDepsInPlugins`. The result looks as following:
+Append this project dependency to the Maven Enforcer plugin, then add any rule at will, like `requireReleaseDepsInPlugins`. The result looks as following:
 
 ```xml
 <plugin>
@@ -45,20 +41,30 @@ Append this project dependency to the Maven Enforcer plugin, then add the rule `
 </plugin>
 ```
 
-In order to only enforce the rule, issue the command:
+In order to only enforce the declared rules, issue the command:
 ```sh
 mvn validate
 ```
 
-Most-common phases like `package` and `test` in the `default` lifecycle include the `validate` phase. This means that Maven enforces the rule in addition to the usual build steps.
+Most-common phases like `package` and `test` in the `default` lifecycle include the `validate` phase. This means that Maven enforces the rules in addition to the usual build steps.
 
-## Configuration
+## Rules
+
+The project currently supports one rule only.
+
+### requireReleaseDepsInPlugins
+
+> Ban SNAPSHOT dependencies of plugins.
+
+In other words, if any plugin in a pom declares a SNAPSHOT dependency, the rule logs it and makes the build to fail.
+
+Plugins in children modules are scanned too.
 
 This rule does not currently accept any parameter.
 
 ## Bug report and contributions
 
-If you think the rule has bugs or should be configurable or for any other issue/suggestion, please open a [GitHub issue for this project](https://github.com/Thefolle/requireReleaseDepsInPlugins/issues).
+If you think any rule has bugs or should be configurable or for any other issue/suggestion, please open a [GitHub issue for this project](https://github.com/Thefolle/requireReleaseDepsInPlugins/issues).
 
 ## License
 

@@ -32,10 +32,6 @@ import org.codehaus.plexus.component.configurator.expression.ExpressionEvaluatio
  */
 public class requireReleaseDepsInPlugins
         implements EnforcerRule {
-    /**
-     * Simple param. This rule fails if the value is true.
-     */
-    // private boolean shouldIfail = false;
 
     public void execute(EnforcerRuleHelper helper)
             throws EnforcerRuleException {
@@ -55,9 +51,9 @@ public class requireReleaseDepsInPlugins
     }
 
     /**
-     * @implNote This method could be merged into the execute method, but this last one is not testable because its parameter EnforcerRuleHelper cannot be directly instantiated.
-     * @param project
-     * @throws EnforcerRuleException
+     * This method could be merged into the execute method, but this last one is not testable because its parameter EnforcerRuleHelper cannot be directly instantiated.
+     * @param project The project to check the rule against.
+     * @throws EnforcerRuleException Signals the Maven Enforcer plugin to fail the build.
      */
     public void requireReleaseDepsInPluginsRule(MavenProject project) throws EnforcerRuleException {
         boolean shouldFail = false;
@@ -132,15 +128,5 @@ public class requireReleaseDepsInPlugins
     public boolean isResultValid(EnforcerRule rule) {
         return false;
     }
-
-    /**
-     * Injects the value of the shouldIfail parameter into the custom rule.
-     * 
-     * @param shouldIfail set to true if you want the rule to fail. false to
-     *                    succeed.
-     */
-    // public void setShouldIfail(boolean shouldIfail) {
-    // this.shouldIfail = shouldIfail;
-    // }
 
 }

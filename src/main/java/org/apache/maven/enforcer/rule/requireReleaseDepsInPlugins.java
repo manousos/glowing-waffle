@@ -1,0 +1,146 @@
+package org.apache.maven.enforcer.rule;
+
+import org.apache.maven.artifact.ArtifactUtils;
+
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+import org.apache.maven.enforcer.rule.api.EnforcerRule;
+import org.apache.maven.enforcer.rule.api.EnforcerRuleException;
+import org.apache.maven.enforcer.rule.api.EnforcerRuleHelper;
+import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.component.configurator.expression.ExpressionEvaluationException;
+
+/**
+ * @author <a href="mailto:cdavide8@gmail.com">Davide Calarco</a>
+ */
+public class requireReleaseDepsInPlugins
+        implements EnforcerRule {
+    /**
+     * Simple param. This rule fails if the value is true.
+     */
+    // private boolean shouldIfail = false;
+
+    public void execute(EnforcerRuleHelper helper)
+            throws EnforcerRuleException {
+
+        //Log log = helper.getLog();
+
+        MavenProject project;
+
+        try {
+            project = (MavenProject) helper.evaluate("${project}");
+        } catch (ExpressionEvaluationException e) {
+            throw new EnforcerRuleException("Unable to lookup an expression " + e.getLocalizedMessage(), e);
+        }
+
+        
+        requireReleaseDepsInPluginsRule(project);
+    }
+
+    /**
+     * @implNote This method could be merged into the execute method, but this last one is not testable because its parameter EnforcerRuleHelper cannot be directly instantiated.
+     * @param project
+     * @throws EnforcerRuleException
+     */
+    public void requireReleaseDepsInPluginsRule(MavenProject project) throws EnforcerRuleException {
+        boolean shouldFail = false;
+
+        StringBuffer message = new StringBuffer();
+
+        shouldFail = project.getBuildPlugins().stream()
+                .map(plugin -> {
+                    return plugin
+                            .getDependencies()
+                            .stream()
+                            .map(dependency -> {
+                                if (ArtifactUtils.isSnapshot(dependency.getVersion())) {
+                                    message.append("Found SNAPSHOT dependency in plugin " + plugin.getKey() + ": "
+                                            + dependency.getManagementKey() + ":" + dependency.getVersion() + "\n");
+                                    return true;
+                                }
+                                return false;
+                            })
+                            .reduce(false, (accumulator, isSnapshot) -> accumulator || isSnapshot);
+                })
+                .reduce(false, (accumulator, hasSnapshot) -> accumulator || hasSnapshot);
+
+        if (shouldFail) {
+            throw new EnforcerRuleException(message.toString());
+        }
+    }
+
+    /**
+     * If your rule is cacheable, you must return a unique id when parameters or
+     * conditions
+     * change that would cause the result to be different. Multiple cached results
+     * are stored
+     * based on their id.
+     * 
+     * The easiest way to do this is to return a hash computed from the values of
+     * your parameters.
+     * 
+     * If your rule is not cacheable, then the result here is not important, you may
+     * return anything.
+     */
+    public String getCacheId() {
+        // no hash on boolean...only parameter so no hash is needed.
+        // return Boolean.toString(this.shouldIfail);
+        return "";
+    }
+
+    /**
+     * This tells the system if the results are cacheable at all. Keep in mind that
+     * during
+     * forked builds and other things, a given rule may be executed more than once
+     * for the same
+     * project. This means that even things that change from project to project may
+     * still
+     * be cacheable in certain instances.
+     */
+    public boolean isCacheable() {
+        return false;
+    }
+
+    /**
+     * If the rule is cacheable and the same id is found in the cache, the stored
+     * results
+     * are passed to this method to allow double checking of the results. Most of
+     * the time
+     * this can be done by generating unique ids, but sometimes the results of
+     * objects returned
+     * by the helper need to be queried. You may for example, store certain objects
+     * in your rule
+     * and then query them later.
+     */
+    public boolean isResultValid(EnforcerRule rule) {
+        return false;
+    }
+
+    /**
+     * Injects the value of the shouldIfail parameter into the custom rule.
+     * 
+     * @param shouldIfail set to true if you want the rule to fail. false to
+     *                    succeed.
+     */
+    // public void setShouldIfail(boolean shouldIfail) {
+    // this.shouldIfail = shouldIfail;
+    // }
+
+}

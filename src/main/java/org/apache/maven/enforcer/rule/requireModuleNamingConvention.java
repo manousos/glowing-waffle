@@ -1,5 +1,7 @@
 package org.apache.maven.enforcer.rule;
 
+import java.util.regex.PatternSyntaxException;
+
 import org.apache.maven.artifact.ArtifactUtils;
 
 /*
@@ -65,11 +67,17 @@ public class requireModuleNamingConvention
         shouldFail = project.getModules()
             .stream()
             .map(moduleName -> {
-                if (!moduleName.matches(regex)) {
-                    message.append("The name of the module " + moduleName + " is not compliant with the convention " + regex + "\n");
-                    return true;
+                try {
+                    if (!moduleName.matches(regex)) {
+                        message.append("The name of the module " + moduleName + " is not compliant with the convention " + regex + "\n");
+                        return true;
+                    }
+                    return false;
+                } catch (PatternSyntaxException exception) {
+                    exception.printStackTrace();
+                    return false;
                 }
-                return false;
+                
             })
             .reduce(false, (accumulator, isNotCompliant) -> accumulator || isNotCompliant);
 

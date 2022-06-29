@@ -68,6 +68,28 @@ The rule doesn't do shortcircuitry. In other words, it doesn't stop at the first
 
 The rule is not cached.
 
+### requireModuleNamingConvention
+
+> Enforce that modules' names match a convention (regex).
+
+In other words, if the pom declares a module whose name doesn't match a regex, the rule logs it and makes the build to fail.
+
+This rule accepts the parameter `regex`, whose value is a regular expression. For instance:
+
+```xml
+<rules>
+    <requireModuleNamingConvention implementation="org.apache.maven.enforcer.rule.requireModuleNamingConvention">
+        <regex>.+-service</regex> <!-- grant any module that has at least one character before terminating with '-service' -->
+    </requireModuleNamingConvention>
+</rules>
+```
+
+#### Details
+
+The rule doesn't do shortcircuitry. In other words, it doesn't stop at the first violation, but it finds all violations and log them before failing.
+
+The rule is not cached.
+
 ## Bug report and contributions
 
 If you think any rule has bugs or should be configurable or for any other issue/suggestion, please open a [GitHub issue for this project](https://github.com/Thefolle/requireReleaseDepsInPlugins/issues).

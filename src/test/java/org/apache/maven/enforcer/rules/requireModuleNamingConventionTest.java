@@ -37,4 +37,88 @@ public class requireModuleNamingConventionTest extends AbstractMojoTestCase {
         }
     }
 
+    public void testWhenOneModuleCompliantShouldPass() throws Exception {
+        File pom = getTestFile("src/test/resources/unit/requireModuleNamingConvention/pom-one-module-compliant.xml");
+        MavenXpp3Reader pomReader = new MavenXpp3Reader();
+        Model model = pomReader.read(ReaderFactory.newXmlReader(pom));
+
+        MavenProject testProject = new MavenProject(model);
+
+        requireModuleNamingConvention rule = new requireModuleNamingConvention();
+
+        /* Manually inject parameter */
+        org.codehaus.plexus.util.xml.Xpp3Dom configuration = (org.codehaus.plexus.util.xml.Xpp3Dom) testProject.getBuildPlugins().get(0).getExecutions().get(0).getConfiguration();
+        String regex = configuration.getChild("rules").getChild("requireModuleNamingConvention").getChild("regex").getValue();
+        rule.setRegex(regex);
+
+        try {
+            rule.requireModuleNamingConventionRule(testProject);
+        } catch (EnforcerRuleException e) {
+            fail("Rule enforced unexpectedly!");
+        }
+    }
+
+    public void testWhenOneModuleNonCompliantShouldThrowEnforcerRuleException() throws Exception {
+        File pom = getTestFile("src/test/resources/unit/requireModuleNamingConvention/pom-one-module-non-compliant.xml");
+        MavenXpp3Reader pomReader = new MavenXpp3Reader();
+        Model model = pomReader.read(ReaderFactory.newXmlReader(pom));
+
+        MavenProject testProject = new MavenProject(model);
+
+        requireModuleNamingConvention rule = new requireModuleNamingConvention();
+
+        /* Manually inject parameter */
+        org.codehaus.plexus.util.xml.Xpp3Dom configuration = (org.codehaus.plexus.util.xml.Xpp3Dom) testProject.getBuildPlugins().get(0).getExecutions().get(0).getConfiguration();
+        String regex = configuration.getChild("rules").getChild("requireModuleNamingConvention").getChild("regex").getValue();
+        rule.setRegex(regex);
+
+        try {
+            rule.requireModuleNamingConventionRule(testProject);
+            fail("Rule not enforced!");
+        } catch (EnforcerRuleException e) {
+        }
+    }
+
+    public void testWhenMultipleModulesCompliantShouldPass() throws Exception {
+        File pom = getTestFile("src/test/resources/unit/requireModuleNamingConvention/pom-multiple-modules-compliant.xml");
+        MavenXpp3Reader pomReader = new MavenXpp3Reader();
+        Model model = pomReader.read(ReaderFactory.newXmlReader(pom));
+
+        MavenProject testProject = new MavenProject(model);
+
+        requireModuleNamingConvention rule = new requireModuleNamingConvention();
+
+        /* Manually inject parameter */
+        org.codehaus.plexus.util.xml.Xpp3Dom configuration = (org.codehaus.plexus.util.xml.Xpp3Dom) testProject.getBuildPlugins().get(0).getExecutions().get(0).getConfiguration();
+        String regex = configuration.getChild("rules").getChild("requireModuleNamingConvention").getChild("regex").getValue();
+        rule.setRegex(regex);
+
+        try {
+            rule.requireModuleNamingConventionRule(testProject);
+        } catch (EnforcerRuleException e) {
+            fail("Rule enforced unexpectedly!");
+        }
+    }
+
+    public void testWhenMultipleModulesNonCompliantShouldThrowEnforcerRuleException() throws Exception {
+        File pom = getTestFile("src/test/resources/unit/requireModuleNamingConvention/pom-multiple-modules-non-compliant.xml");
+        MavenXpp3Reader pomReader = new MavenXpp3Reader();
+        Model model = pomReader.read(ReaderFactory.newXmlReader(pom));
+
+        MavenProject testProject = new MavenProject(model);
+
+        requireModuleNamingConvention rule = new requireModuleNamingConvention();
+
+        /* Manually inject parameter */
+        org.codehaus.plexus.util.xml.Xpp3Dom configuration = (org.codehaus.plexus.util.xml.Xpp3Dom) testProject.getBuildPlugins().get(0).getExecutions().get(0).getConfiguration();
+        String regex = configuration.getChild("rules").getChild("requireModuleNamingConvention").getChild("regex").getValue();
+        rule.setRegex(regex);
+
+        try {
+            rule.requireModuleNamingConventionRule(testProject);
+            fail("Rule not enforced!");
+        } catch (EnforcerRuleException e) {
+        }
+    }
+
 }

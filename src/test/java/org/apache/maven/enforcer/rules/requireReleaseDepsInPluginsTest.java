@@ -10,7 +10,7 @@ import org.apache.maven.plugin.testing.AbstractMojoTestCase;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.utils.ReaderFactory;
 
-public class RuleTest extends AbstractMojoTestCase {
+public class requireReleaseDepsInPluginsTest extends AbstractMojoTestCase {
 
     protected void setUp() throws Exception {
         // do not call! Here testing an EnforcerRule class, not an AbstractMojo class!

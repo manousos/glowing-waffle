@@ -62,6 +62,12 @@ Plugins in children modules are scanned too.
 
 This rule does not currently accept any parameter.
 
+#### Details
+
+The rule doesn't do shortcircuitry. In other words, it doesn't stop at the first violation, but it finds all violations and log them before failing.
+
+The rule is not cached.
+
 ## Bug report and contributions
 
 If you think any rule has bugs or should be configurable or for any other issue/suggestion, please open a [GitHub issue for this project](https://github.com/Thefolle/requireReleaseDepsInPlugins/issues).

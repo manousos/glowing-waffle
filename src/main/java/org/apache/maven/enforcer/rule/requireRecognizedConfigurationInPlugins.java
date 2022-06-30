@@ -11,6 +11,7 @@ import org.apache.maven.enforcer.rule.api.EnforcerRule2;
 import org.apache.maven.enforcer.rule.api.EnforcerRuleException;
 import org.apache.maven.enforcer.rule.api.EnforcerRuleHelper;
 import org.apache.maven.execution.MavenSession;
+import org.apache.maven.model.Plugin;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.reporting.exec.MavenPluginManagerHelper;
@@ -64,73 +65,6 @@ public class requireRecognizedConfigurationInPlugins implements EnforcerRule2, C
 
         StringBuffer message = new StringBuffer();
 
-        project.getOriginalModel().getBuild().getPlugins()
-                .forEach(plugin -> {
-                    PluginDescriptor pluginDescriptor;
-                    List<String> parameters = new ArrayList<>();
-                    try {
-                        pluginDescriptor = pluginManager.getPluginDescriptor(plugin, session);
-
-                        pluginDescriptor.getMojos().stream()
-                                .forEach(mojoDescriptor -> {
-                                    parameters.addAll(mojoDescriptor.getParameters().stream()
-                                            .map(parameter -> parameter.getName()).collect(Collectors.toList()));
-                                });
-                    } catch (Exception e) {
-                        System.out.println(e);
-                    }
-
-                    Xpp3Dom configuration = (Xpp3Dom) plugin.getConfiguration();
-                    List<String> actualParameters = new ArrayList<>();
-                    if (configuration != null) {
-                        actualParameters.addAll(Arrays.asList(configuration.getChildren()).stream()
-                                .map(node -> node.getName()).collect(Collectors.toList()));
-                        actualParameters
-                                .stream()
-                                .map(actualParameter -> {
-                                    if (!parameters.contains(actualParameter)) {
-                                        message.append(
-                                                "The plugin " + plugin.getKey() + " does not accept a parameter called "
-                                                        + actualParameter + ". Please, correct or remove it.");
-                                        return true;
-                                    }
-                                    return false;
-                                })
-                                .reduce(false, (accumulator, isNotCompliant) -> accumulator || isNotCompliant);
-                    } else {
-                        message.append("Empty configuration for plugin " + plugin.getId() + "\n");
-                    }
-
-                    plugin.getExecutions().stream()
-                            .map(execution -> execution.getConfiguration())
-                            .map(rawExecutionConfiguration -> {
-                                Xpp3Dom executionConfiguration = (Xpp3Dom) rawExecutionConfiguration;
-                                actualParameters.clear();
-                                if (executionConfiguration != null) {
-                                    actualParameters.addAll(Arrays.asList(executionConfiguration.getChildren()).stream()
-                                            .map(node -> node.getName()).collect(Collectors.toList()));
-                                    return actualParameters
-                                            .stream()
-                                            .map(actualParameter -> {
-                                                if (!parameters.contains(actualParameter)) {
-                                                    message.append("The plugin " + plugin.getKey()
-                                                            + " does not accept a parameter called " + actualParameter
-                                                            + ". Please, correct or remove it.");
-                                                    return true;
-                                                }
-                                                return false;
-                                            })
-                                            .reduce(false,
-                                                    (accumulator, isNotCompliant) -> accumulator || isNotCompliant);
-                                } else {
-                                   // message.append("Empty configuration for plugin " + plugin.getId() + "\n");
-                                    return false;
-                                }
-                            })
-                            .reduce(false, (accumulator, isNotCompliant) -> accumulator || isNotCompliant);
-
-                });
-
         /*
          * The original model doesn't still have plugins declared in pluginManagement,
          * quite just those inside build/plugins
@@ -140,62 +74,74 @@ public class requireRecognizedConfigurationInPlugins implements EnforcerRule2, C
         // System.out.println(project.getExecutionProject().getBuild().getPlugins().size());
         // System.out.println(project.getOriginalModel().getBuild().getPlugins().size());
 
-        /*
-         * project.getOriginalModel().getBuild().getPlugins()
-         * .stream()
-         * .map(plugin -> {
-         * Xpp3Dom configuration = (Xpp3Dom) plugin.getConfiguration();
-         * if (configuration != null) {
-         * message.append(configuration.toString());
-         * return true;
-         * } else {
-         * message.append("Empty configuration for plugin " + plugin.getId() + "\n");
-         * }
-         * 
-         * plugin.getExecutions().stream()
-         * .map(execution -> execution.getConfiguration())
-         * .forEach(executionConfiguration -> {
-         * if (executionConfiguration != null) {
-         * message.append(executionConfiguration.toString());
-         * } else {
-         * message.append("Empty execution configuration for plugin " + plugin.getId() +
-         * "\n");
-         * }
-         * });
-         * return false;
-         * })
-         * .reduce(false, (accumulator, isNotCompliant) -> accumulator ||
-         * isNotCompliant);
-         * 
-         * shouldFail = project.getBuild().getPlugins()
-         * .stream()
-         * .map(plugin -> {
-         * Xpp3Dom configuration = (Xpp3Dom) plugin.getConfiguration();
-         * if (configuration != null) {
-         * message.append(configuration.toString());
-         * return true;
-         * }
-         * 
-         * plugin.getExecutions().stream()
-         * .map(execution -> execution.getConfiguration())
-         * .forEach(executionConfiguration -> {
-         * if (executionConfiguration != null) {
-         * message.append(executionConfiguration.toString());
-         * } else {
-         * message.append("Empty execution configuration for plugin " + plugin.getId() +
-         * "\n");
-         * }
-         * });
-         * return false;
-         * })
-         * .reduce(false, (accumulator, isNotCompliant) -> accumulator ||
-         * isNotCompliant);
-         */
+        project.getOriginalModel().getBuild().getPlugins()
+                .forEach(plugin -> {
+                    try {
+                        List<String> parameters = getPluginParameters(session, plugin);
+
+                        Xpp3Dom configuration = (Xpp3Dom) plugin.getConfiguration();
+                        enforceRule(plugin, parameters, configuration)
+                                .forEach(nonRecognizedParameter -> {
+                                    message.append(
+                                            "The plugin " + plugin.getKey()
+                                                    + " does not accept a parameter called "
+                                                    + nonRecognizedParameter + ". Please, correct or remove it.");
+                                });
+
+                        plugin.getExecutions().stream()
+                                .map(execution -> (Xpp3Dom) execution.getConfiguration())
+                                .forEach(executionConfiguration -> {
+                                    enforceRule(plugin, parameters, executionConfiguration)
+                                            .forEach(nonRecognizedParameter -> {
+                                                message.append(
+                                                        "The plugin " + plugin.getKey()
+                                                                + " does not accept a parameter called "
+                                                                + nonRecognizedParameter
+                                                                + ". Please, correct or remove it.");
+                                            });
+                                });
+
+                    } catch (Exception e) {
+                        message.append(e.toString());
+                    }
+
+                });
+
         shouldFail = message.length() > 0;
 
         if (shouldFail) {
             throw new EnforcerRuleException(message.toString());
         }
+    }
+
+    private List<String> enforceRule(Plugin plugin, List<String> parameters, Xpp3Dom configuration) {
+        List<String> nonRecognizedParameters = new ArrayList<>();
+        if (configuration != null) {
+            List<String> actualParameters = Arrays.asList(configuration.getChildren()).stream()
+                    .map(node -> node.getName()).collect(Collectors.toList());
+            actualParameters
+                    .stream()
+                    .forEach(actualParameter -> {
+                        if (!parameters.contains(actualParameter)) {
+                            nonRecognizedParameters.add(actualParameter);
+                        }
+                    });
+        }
+        return nonRecognizedParameters;
+    }
+
+    private List<String> getPluginParameters(MavenSession session, Plugin plugin) throws Exception {
+        PluginDescriptor pluginDescriptor;
+        List<String> parameters = new ArrayList<>();
+        pluginDescriptor = pluginManager.getPluginDescriptor(plugin, session);
+
+        pluginDescriptor.getMojos().stream()
+                .forEach(mojoDescriptor -> {
+                    parameters.addAll(mojoDescriptor.getParameters().stream()
+                            .map(parameter -> parameter.getName()).collect(Collectors.toList()));
+                });
+
+        return parameters;
     }
 
     /**

@@ -66,38 +66,35 @@ public class requireRecognizedConfigurationInPlugins implements EnforcerRule2, C
         StringBuffer message = new StringBuffer();
 
         /*
-         * The original model doesn't still have plugins declared in pluginManagement,
-         * quite just those inside build/plugins
-         * Project and execution projects do not make this distinction anymore
+         * The original model has not applied inheritance yet, unlike project and
+         * executionProject.
          */
         // System.out.println(project.getBuild().getPlugins().size());
         // System.out.println(project.getExecutionProject().getBuild().getPlugins().size());
         // System.out.println(project.getOriginalModel().getBuild().getPlugins().size());
 
-        project.getOriginalModel().getBuild().getPlugins()
+        List<Plugin> plugins = new ArrayList<>();
+        plugins.addAll(project.getBuildPlugins());
+        // plugins.addAll(project.getPluginManagement().getPlugins());
+
+        plugins
                 .forEach(plugin -> {
                     try {
                         List<String> parameters = getPluginParameters(session, plugin);
+                        List<Xpp3Dom> configurations = new ArrayList<>();
+                        configurations.add((Xpp3Dom) plugin.getConfiguration());
+                        configurations.addAll(plugin.getExecutions().stream()
+                                .map(execution -> (Xpp3Dom) execution.getConfiguration()).collect(Collectors.toList()));
 
-                        Xpp3Dom configuration = (Xpp3Dom) plugin.getConfiguration();
-                        enforceRule(plugin, parameters, configuration)
-                                .forEach(nonRecognizedParameter -> {
-                                    message.append(
-                                            "The plugin " + plugin.getKey()
-                                                    + " does not accept a parameter called "
-                                                    + nonRecognizedParameter + ". Please, correct or remove it.");
-                                });
-
-                        plugin.getExecutions().stream()
-                                .map(execution -> (Xpp3Dom) execution.getConfiguration())
-                                .forEach(executionConfiguration -> {
-                                    enforceRule(plugin, parameters, executionConfiguration)
+                        configurations
+                                .forEach(configuration -> {
+                                    enforceRule(plugin, parameters, configuration)
                                             .forEach(nonRecognizedParameter -> {
                                                 message.append(
                                                         "The plugin " + plugin.getKey()
                                                                 + " does not accept a parameter called "
                                                                 + nonRecognizedParameter
-                                                                + ". Please, correct or remove it.");
+                                                                + ". Please, correct or remove it.\n");
                                             });
                                 });
 

@@ -26,7 +26,7 @@ public class requireModuleNamingConventionTest extends AbstractMojoTestCase {
         File pom = getTestFile("src/test/resources/unit/requireModuleNamingConvention/pom-no-modules.xml");
         MavenXpp3Reader pomReader = new MavenXpp3Reader();
         Model model = pomReader.read(ReaderFactory.newXmlReader(pom));
-
+        
         MavenProject testProject = new MavenProject(model);
 
         requireModuleNamingConvention rule = new requireModuleNamingConvention();

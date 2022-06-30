@@ -90,6 +90,20 @@ The rule doesn't do shortcircuitry. In other words, it doesn't stop at the first
 
 The rule is not cached.
 
+### requireRecognizedConfigurationInPlugins
+
+> Require that plugins recognize all the declared parameters in their configuration
+
+In other words, when the pom declares a set of parameters for the configuration of a plugin, the rule checks whether the plugin recognizes all of them.
+
+The rule accepts the `level` parameter, in order to make the build to fail or just warn the violation on the log:
+```xml
+<requireRecognizedConfigurationInPlugins implementation="org.apache.maven.enforcer.rule.requireRecognizedConfigurationInPlugins">
+    <level>warn</level>
+</requireRecognizedConfigurationInPlugins>
+```
+Admissible values are `warn` and `error`. The default value is `error`.
+
 ## Bug report and contributions
 
 If you think any rule has bugs or should be configurable or for any other issue/suggestion, please open a [GitHub issue for this project](https://github.com/Thefolle/requireReleaseDepsInPlugins/issues).

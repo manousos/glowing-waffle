@@ -2,8 +2,6 @@ package org.apache.maven.enforcer.rule;
 
 import java.util.regex.PatternSyntaxException;
 
-import org.apache.maven.artifact.ArtifactUtils;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file

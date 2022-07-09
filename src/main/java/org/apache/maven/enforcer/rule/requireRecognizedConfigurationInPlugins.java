@@ -26,11 +26,6 @@ public class requireRecognizedConfigurationInPlugins implements EnforcerRule2, C
 
     private EnforcerLevel level = EnforcerLevel.ERROR;
 
-    /**
-     * Component used to get a plugin descriptor from a given plugin.
-     */
-    private MavenPluginManagerHelper pluginManager;
-
     public void execute(EnforcerRuleHelper helper)
             throws EnforcerRuleException {
 
@@ -38,16 +33,18 @@ public class requireRecognizedConfigurationInPlugins implements EnforcerRule2, C
 
         MavenProject project;
         MavenSession session;
+        MavenPluginManagerHelper mavenPluginManagerHelper;
 
         try {
             project = (MavenProject) helper.evaluate("${project}");
             session = (MavenSession) helper.evaluate("${session}");
-            pluginManager = (MavenPluginManagerHelper) helper.getComponent(MavenPluginManagerHelper.class);
+            helper.getLog().error(project.getRemotePluginRepositories().toString());
+            mavenPluginManagerHelper = (MavenPluginManagerHelper) helper.getComponent(MavenPluginManagerHelper.class);
+            requireRecognizedConfigurationInPluginsRule(project, session, mavenPluginManagerHelper);
         } catch (ExpressionEvaluationException | ComponentLookupException e) {
             throw new EnforcerRuleException("Unable to lookup an expression " + e.getLocalizedMessage(), e);
         }
 
-        requireRecognizedConfigurationInPluginsRule(project, session);
     }
 
     /**
@@ -59,7 +56,7 @@ public class requireRecognizedConfigurationInPlugins implements EnforcerRule2, C
      * @throws EnforcerRuleException Signals the Maven Enforcer plugin to fail the
      *                               build.
      */
-    public void requireRecognizedConfigurationInPluginsRule(MavenProject project, MavenSession session)
+    public void requireRecognizedConfigurationInPluginsRule(MavenProject project, MavenSession session, MavenPluginManagerHelper mavenPluginManagerHelper)
             throws EnforcerRuleException {
         boolean shouldFail = false;
 
@@ -80,7 +77,7 @@ public class requireRecognizedConfigurationInPlugins implements EnforcerRule2, C
         plugins
                 .forEach(plugin -> {
                     try {
-                        List<String> parameters = getPluginParameters(session, plugin);
+                        List<String> parameters = getPluginParameters(session, plugin, mavenPluginManagerHelper);
                         List<Xpp3Dom> configurations = new ArrayList<>();
                         configurations.add((Xpp3Dom) plugin.getConfiguration());
                         configurations.addAll(plugin.getExecutions().stream()
@@ -127,16 +124,24 @@ public class requireRecognizedConfigurationInPlugins implements EnforcerRule2, C
         return nonRecognizedParameters;
     }
 
-    private List<String> getPluginParameters(MavenSession session, Plugin plugin) throws Exception {
+    private List<String> getPluginParameters(MavenSession session, Plugin plugin, MavenPluginManagerHelper mavenPluginManagerHelper) throws Exception {
         PluginDescriptor pluginDescriptor;
         List<String> parameters = new ArrayList<>();
-        pluginDescriptor = pluginManager.getPluginDescriptor(plugin, session);
-
+        pluginDescriptor = mavenPluginManagerHelper.getPluginDescriptor(plugin, session);
         pluginDescriptor.getMojos().stream()
                 .forEach(mojoDescriptor -> {
                     parameters.addAll(mojoDescriptor.getParameters().stream()
                             .map(parameter -> parameter.getName()).collect(Collectors.toList()));
                 });
+        
+        /***
+         * For the reason about this unique use case, see:
+         *  https://maven.apache.org/plugins-archives/maven-site-plugin-3.7.1/maven-3.html#Classic_configuration_.28Maven_2_.26_3.29
+         *  https://maven.apache.org/shared/maven-reporting-exec/
+         */
+        if (plugin.getKey().contentEquals("org.apache.maven.plugins:maven-site-plugin")) {
+            parameters.add("reportPlugins");
+        }
 
         return parameters;
     }

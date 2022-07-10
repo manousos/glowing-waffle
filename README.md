@@ -96,12 +96,18 @@ The rule is not cached.
 
 In other words, when the pom declares a set of parameters for the configuration of a plugin, the rule checks whether the plugin recognizes all of them.
 
-The rule accepts the `level` parameter, in order to make the build to fail or just warn the violation on the log:
+The rule accepts the `level` parameter, whose meaning is in relation to the `fail` parameter proper of the Enforcer plugin:
 ```xml
-<requireRecognizedConfigurationInPlugins implementation="org.apache.maven.enforcer.rule.requireRecognizedConfigurationInPlugins">
-    <level>warn</level>
-</requireRecognizedConfigurationInPlugins>
+<configuration>
+    <rules>
+        <requireRecognizedConfigurationInPlugins implementation="org.apache.maven.enforcer.rule.requireRecognizedConfigurationInPlugins">
+            <level>warn</level>
+        </requireRecognizedConfigurationInPlugins>
+    </rules>
+    <fail>true</fail>
+</configuration>
 ```
+In the above example, the build does not fail in case of violation because the `level` parameter overrides the global `fail` parameter.
 Admissible values are `warn` and `error`. The default value is `error`.
 
 The rule currently only checks the first-level children of a `<configuration>` tag. Namely it doesn't go deep to check sub-parameters.

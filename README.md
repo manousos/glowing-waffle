@@ -104,6 +104,8 @@ The rule accepts the `level` parameter, in order to make the build to fail or ju
 ```
 Admissible values are `warn` and `error`. The default value is `error`.
 
+The rule currently only checks the first-level children of a `<configuration>` tag. Namely it doesn't go deep to check sub-parameters.
+
 ## Bug report and contributions
 
 If you think any rule has bugs or should be configurable or for any other issue/suggestion, please open a [GitHub issue for this project](https://github.com/Thefolle/requireReleaseDepsInPlugins/issues).

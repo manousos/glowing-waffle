@@ -38,7 +38,6 @@ public class requireRecognizedConfigurationInPlugins implements EnforcerRule2, C
         try {
             project = (MavenProject) helper.evaluate("${project}");
             session = (MavenSession) helper.evaluate("${session}");
-            helper.getLog().error(project.getRemotePluginRepositories().toString());
             mavenPluginManagerHelper = (MavenPluginManagerHelper) helper.getComponent(MavenPluginManagerHelper.class);
             requireRecognizedConfigurationInPluginsRule(project, session, mavenPluginManagerHelper);
         } catch (ExpressionEvaluationException | ComponentLookupException e) {

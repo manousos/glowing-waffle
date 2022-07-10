@@ -23,11 +23,11 @@
 
   <groupId>io.github.thefolle</groupId>
   <artifactId>glowing-waffle</artifactId>
-  <version>1.1.0-SNAPSHOT</version>
+  <version>1.2.0-SNAPSHOT</version>
   <packaging>jar</packaging>
 
-  <name>Require release dependencies in plugins</name>
-  <description>Ban SNAPSHOT dependencies of plugins. If any plugin declares a SNAPSHOT dependency, the build fails. Plugins in children modules are scanned too.</description>
+  <name>Glowing Waffle</name>
+  <description>Collection of custom rules to be appended to the Maven Enforcer plugin. See GitHub homepage for full documentation.</description>
   <url>https://github.com/Thefolle/glowing-waffle</url>
 
   <licenses>

@@ -50,7 +50,7 @@ Most-common phases like `package` and `test` in the `default` lifecycle include 
 
 ## Rules
 
-The project currently supports one rule only.
+The project currently supports three rules.
 
 ### requireReleaseDepsInPlugins
 

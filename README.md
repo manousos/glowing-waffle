@@ -33,9 +33,9 @@ Append this project dependency to the Maven Enforcer plugin, then add any rule a
     <dependencies>
         <!-- Add this dependency to the plugin -->
         <dependency>
-            <groupId>it.thefolle</groupId>
-            <artifactId>require-release-deps-in-plugins</artifactId>
-            <version>1.0.0</version>
+            <groupId>io.github.thefolle</groupId>
+            <artifactId>glowing-waffle</artifactId>
+            <version>1.2.0</version>
         </dependency>
     </dependencies>
 </plugin>

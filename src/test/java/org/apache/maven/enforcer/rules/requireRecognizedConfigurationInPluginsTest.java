@@ -1,5 +1,6 @@
 package org.apache.maven.enforcer.rules;
 
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -28,6 +29,7 @@ import org.apache.maven.reporting.exec.MavenPluginManagerHelper;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.codehaus.plexus.util.ReaderFactory;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
+import org.junit.jupiter.api.Assertions;
 
 public class requireRecognizedConfigurationInPluginsTest extends AbstractMojoTestCase {
 
@@ -48,7 +50,7 @@ public class requireRecognizedConfigurationInPluginsTest extends AbstractMojoTes
         MavenProject testProject = new MavenProject(model);
         
         /***
-         * This approach tries to download plugin descriptors in the flesh, but mocking it is way easier
+         * This approach tries to download plugin descriptors in the flesh, but mocking them is way easier
          */
         // List<ArtifactRepository> artifactRepositories = new ArrayList<>();
         // ArtifactRepositoryFactory artifactRepositoryFactory = getContainer().lookup(ArtifactRepositoryFactory.class);
@@ -76,8 +78,61 @@ public class requireRecognizedConfigurationInPluginsTest extends AbstractMojoTes
         try {
             rule.requireRecognizedConfigurationInPluginsRule(testProject, mavenSession, mavenPluginManagerHelper);
         } catch (EnforcerRuleException e) {
-            System.out.println("Rule enforced unexpectedly!\n");
-            throw e;
+            Assertions.fail("Rule enforced unexpectedly!\n", e);
+        }
+    }
+
+    public void testWhenNonExistingParameterShouldThrowEnforcerRuleException() throws IOException, XmlPullParserException, ComponentLookupException, EnforcerRuleException, ProjectBuildingException, ClassNotFoundException, UnknownRepositoryLayoutException, PluginResolutionException, PluginDescriptorParsingException, InvalidPluginDescriptorException, DuplicateParameterException, DuplicateMojoDescriptorException {
+        File pom = getTestFile("src/test/resources/unit/requireRecognizedConfigurationInPlugins/pom-non-existing-parameter.xml");
+        MavenXpp3Reader pomReader = new MavenXpp3Reader();
+        Model model = pomReader.read(ReaderFactory.newXmlReader(pom));
+        MavenProject testProject = new MavenProject(model);
+
+        requireRecognizedConfigurationInPlugins rule = new requireRecognizedConfigurationInPlugins();
+        MavenSession mavenSession = newMavenSession(testProject);
+        MavenPluginManagerHelper mavenPluginManagerHelper = mock(MavenPluginManagerHelper.class);
+
+        // Create a mock plugin descriptor
+        PluginDescriptor pluginDescriptor = new PluginDescriptor();
+        MojoDescriptor mojoDescriptor = new MojoDescriptor();
+        Parameter parameter = new Parameter();
+        parameter.setName("fail");
+        mojoDescriptor.addParameter(parameter);
+        pluginDescriptor.addMojo(mojoDescriptor);
+        Plugin plugin = testProject.getBuildPlugins().get(0);
+        when(mavenPluginManagerHelper.getPluginDescriptor(plugin, mavenSession)).thenReturn(pluginDescriptor);
+
+        try {
+            rule.requireRecognizedConfigurationInPluginsRule(testProject, mavenSession, mavenPluginManagerHelper);
+            fail("Rule not enforced!");
+        } catch (EnforcerRuleException e) {
+        }
+    }
+
+    public void testWhenExistingParametersAndMultipleExecutionsShouldPass() throws IOException, XmlPullParserException, ComponentLookupException, EnforcerRuleException, ProjectBuildingException, ClassNotFoundException, UnknownRepositoryLayoutException, PluginResolutionException, PluginDescriptorParsingException, InvalidPluginDescriptorException, DuplicateParameterException, DuplicateMojoDescriptorException {
+        File pom = getTestFile("src/test/resources/unit/requireRecognizedConfigurationInPlugins/pom-existing-parameters-multiple-executions.xml");
+        MavenXpp3Reader pomReader = new MavenXpp3Reader();
+        Model model = pomReader.read(ReaderFactory.newXmlReader(pom));
+        MavenProject testProject = new MavenProject(model);
+
+        requireRecognizedConfigurationInPlugins rule = new requireRecognizedConfigurationInPlugins();
+        MavenSession mavenSession = newMavenSession(testProject);
+        MavenPluginManagerHelper mavenPluginManagerHelper = mock(MavenPluginManagerHelper.class);
+
+        // Create a mock plugin descriptor
+        PluginDescriptor pluginDescriptor = new PluginDescriptor();
+        MojoDescriptor mojoDescriptor = new MojoDescriptor();
+        Parameter parameter = new Parameter();
+        parameter.setName("fail");
+        mojoDescriptor.addParameter(parameter);
+        pluginDescriptor.addMojo(mojoDescriptor);
+        Plugin plugin = testProject.getBuildPlugins().get(0);
+        when(mavenPluginManagerHelper.getPluginDescriptor(plugin, mavenSession)).thenReturn(pluginDescriptor);
+
+        try {
+            rule.requireRecognizedConfigurationInPluginsRule(testProject, mavenSession, mavenPluginManagerHelper);
+        } catch (EnforcerRuleException e) {
+            Assertions.fail("Rule enforced unexpectedly!\n", e);
         }
     }
     

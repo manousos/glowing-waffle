@@ -17,12 +17,9 @@ import org.apache.maven.project.MavenProject;
 import org.apache.maven.reporting.exec.MavenPluginManagerHelper;
 import org.codehaus.plexus.component.configurator.expression.ExpressionEvaluationException;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
-import org.codehaus.plexus.context.Context;
-import org.codehaus.plexus.context.ContextException;
-import org.codehaus.plexus.personality.plexus.lifecycle.phase.Contextualizable;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 
-public class requireRecognizedConfigurationInPlugins implements EnforcerRule2, Contextualizable {
+public class requireRecognizedConfigurationInPlugins implements EnforcerRule2 {
 
     private EnforcerLevel level = EnforcerLevel.ERROR;
 
@@ -192,11 +189,12 @@ public class requireRecognizedConfigurationInPlugins implements EnforcerRule2, C
         return false;
     }
 
-    @Override
-    public void contextualize(Context context) throws ContextException {
-        System.out.println("ciao");
-        System.out.println(context.getContextData());
-    }
+    // This method works for plugins
+    // @Override
+    // public void contextualize(Context context) throws ContextException {
+    //     System.out.println("ciao");
+    //     System.out.println(context.getContextData());
+    // }
 
     public void setLevel(String level) {
         this.level = EnforcerLevel.valueOf(level.toUpperCase()); // should throw exception if the string is not

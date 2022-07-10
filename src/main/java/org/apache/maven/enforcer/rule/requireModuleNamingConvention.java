@@ -47,7 +47,6 @@ public class requireModuleNamingConvention
         } catch (ExpressionEvaluationException e) {
             throw new EnforcerRuleException("Unable to lookup an expression " + e.getLocalizedMessage(), e);
         }
-
         
         requireModuleNamingConventionRule(project);
     }

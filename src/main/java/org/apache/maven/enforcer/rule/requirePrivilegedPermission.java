@@ -48,12 +48,14 @@ public class requirePrivilegedPermission implements EnforcerRule2 {
 
         File file = new File("pom.xml");
         helper.getLog().error(file.exists() + "");
-        helper.getLog().error(file.canWrite() + "");
+        helper.getLog().error("Write: " + file.canWrite() + "");
+        helper.getLog().error("Read: " + file.canRead() + "");
+        helper.getLog().error("Execute: " + file.canExecute() + "");
         // AccessController.checkPermission(new RuntimePermission("setIO"));
-        Thread[] threadArray = new Thread[20];
-        Thread.currentThread().getThreadGroup().enumerate(threadArray, true);
-        List<Thread> threads = List.of(threadArray);
-        threads.forEach(thread -> helper.getLog().error(thread.toString()));
+        // Thread[] threadArray = new Thread[20];
+        // Thread.currentThread().getThreadGroup().enumerate(threadArray, true);
+        // List<Thread> threads = List.of(threadArray);
+        // threads.forEach(thread -> helper.getLog().error(thread.toString()));
         
         
         // AccessController.doPrivileged(new PrivilegedAction<Integer>() {

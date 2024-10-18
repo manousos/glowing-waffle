@@ -68,6 +68,16 @@ The rule doesn't do shortcircuitry. In other words, it doesn't stop at the first
 
 The rule is not cached.
 
+### requireReleaseDepsInDependencies
+
+> Ban SNAPSHOT dependencies in dependencies.
+
+In other words, if any dependency in a pom declares a SNAPSHOT dependency, the rule logs it and makes the build to fail.
+
+Plugins in children modules are scanned too.
+
+This rule does not currently accept any parameter.
+
 ### requireModuleNamingConvention
 
 > Enforce that modules' names match a convention (regex).
